@@ -1,71 +1,73 @@
-let startTime;
-let updatedTime;
-let difference;
-let tInterval;
+let timerInterval;
 let running = false;
-let hours = 0;
-let minutes = 0;
 let seconds = 0;
+let minutes = 0;
+let hours = 0;
 let lapCount = 0;
 
-const startStopButton = document.getElementById("startStopButton");
-const resetButton = document.getElementById("resetButton");
-const lapButton = document.getElementById("lapButton");
-const lapList = document.getElementById("lapList");
+const timeDisplay = document.getElementById('time-display');
+const startStopBtn = document.getElementById('startStopBtn');
+const resetBtn = document.getElementById('resetBtn');
+const lapBtn = document.getElementById('lapBtn');
+const lapsContainer = document.getElementById('laps');
 
-function toggleStartStop() {
-  if (running === false) {
-    startTime = new Date().getTime();
-    tInterval = setInterval(updateTime, 1);
-    startStopButton.textContent = "Pause";
-    running = true;
-  } else {
-    clearInterval(tInterval);
-    startStopButton.textContent = "Resume";
-    running = false;
-  }
+// Format time as HH:MM:SS
+function formatTime(s) {
+  const hrs = Math.floor(s / 3600);
+  const mins = Math.floor((s % 3600) / 60);
+  const secs = s % 60;
+  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-function updateTime() {
-  updatedTime = new Date().getTime();
-  difference = updatedTime - startTime;
-
-  hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-  seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-  document.getElementById("hours").textContent = formatTime(hours);
-  document.getElementById("minutes").textContent = formatTime(minutes);
-  document.getElementById("seconds").textContent = formatTime(seconds);
-}
-
-function formatTime(time) {
-  if (time < 10) {
-    return "0" + time;
-  }
-  return time;
-}
-
-function resetStopwatch() {
-  clearInterval(tInterval);
-  running = false;
-  startStopButton.textContent = "Start";
-  hours = 0;
-  minutes = 0;
-  seconds = 0;
-  lapCount = 0;
-  lapList.innerHTML = "";
-  document.getElementById("hours").textContent = "00";
-  document.getElementById("minutes").textContent = "00";
-  document.getElementById("seconds").textContent = "00";
-}
-
-function recordLap() {
+// Start or stop the stopwatch
+function toggleTimer() {
   if (running) {
-    lapCount++;
-    const lapTime = `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
-    const li = document.createElement("li");
-    li.textContent = `Lap ${lapCount}: ${lapTime}`;
-    lapList.appendChild(li);
+    clearInterval(timerInterval);
+    startStopBtn.textContent = 'Start';
+  } else {
+    timerInterval = setInterval(updateTime, 1000);
+    startStopBtn.textContent = 'Stop';
   }
+  running = !running;
 }
+
+// Update the time on the display
+function updateTime() {
+  seconds++;
+  if (seconds >= 60) {
+    seconds = 0;
+    minutes++;
+  }
+  if (minutes >= 60) {
+    minutes = 0;
+    hours++;
+  }
+  timeDisplay.textContent = formatTime(hours * 3600 + minutes * 60 + seconds);
+}
+
+// Reset the stopwatch
+function resetTimer() {
+  clearInterval(timerInterval);
+  running = false;
+  seconds = 0;
+  minutes = 0;
+  hours = 0;
+  lapCount = 0;
+  timeDisplay.textContent = formatTime(0);
+  startStopBtn.textContent = 'Start';
+  lapsContainer.innerHTML = '';
+}
+
+// Add a lap time
+function addLap() {
+  lapCount++;
+  const lapTime = formatTime(hours * 3600 + minutes * 60 + seconds);
+  const lap = document.createElement('div');
+  lap.textContent = `Lap ${lapCount}: ${lapTime}`;
+  lapsContainer.appendChild(lap);
+}
+
+// Event listeners
+startStopBtn.addEventListener('click', toggleTimer);
+resetBtn.addEventListener('click', resetTimer);
+lapBtn.addEventListener('click', addLap);
